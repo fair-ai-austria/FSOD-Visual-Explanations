@@ -4,61 +4,11 @@ import requests
 import json
 import os
 import time
-from PIL import Image
-from fiftyone import ViewField as F
-import fiftyone as fo
 import numpy as np
 import threading
 
 from service_settings import Settings, sanitize_directory_name
 
-
-def insert_results_in_dataset(dataset, results, images_dir, threshold, object_list, field_name, view_index=-1):
-    if os.getcwd() in images_dir:
-        images_dir_abs = images_dir
-    else:
-        images_dir_abs = os.path.join(os.getcwd(), images_dir)
-
-    for i, img_res in enumerate(results):
-        img_file = img_res['image_file']
-        result_list = img_res['features']
-        search_view = dataset.match(F("filepath") == os.path.join(images_dir_abs, img_file))
-        if len(search_view) > 0:
-            sample = search_view.first()
-
-            if sample.metadata:
-                img_width = sample.metadata.width
-                img_height = sample.metadata.height
-            else:
-                img = Image.open(sample['filepath'])
-                img_width, img_height = img.size
-
-            detection_list = []
-            for result in result_list:
-                if not result['filtered'] and result['confidence'] >= threshold and result['class'] in object_list:
-                    if view_index >= 0 and result['view_index'] != view_index:
-                        continue
-                    scores = result['confidence']
-
-                    x = result['region'][0] / img_width
-                    y = result['region'][1] / img_height
-                    width = (result['region'][2] - result['region'][0]) / img_width
-                    height = (result['region'][3] - result['region'][1]) / img_height
-                    bounding_box = [x, y, width, height]
-
-                    # add detection to sample
-                    new_detection = fo.Detection(
-                        label=result['class'],
-                        bounding_box=bounding_box,
-                        confidence=scores,
-                        tags=["inference"]
-                    )
-
-                    detection_list.append(new_detection)
-
-            sample[field_name] = fo.Detections(detections=detection_list)
-            sample.save()
-    dataset.save()
 
 #not used currently
 def filter_overlapped_objects(image_result_list, det_threshold):
@@ -1099,34 +1049,6 @@ class object_detection_client:
             error_msg = "Error: Connection to object detection service failed!"
             return None, error_msg
 
-
-    def inference_of_dataset(self, model_id, dataset, image_files, images_dir, threshold, object_list,
-                             class_selection_mode='all', detect_supercategories=False, field_name='predictions',
-                             batch_size=10, del_uploaded_images=True, del_prev_detections=True, top_k=1):
-        error_msg = ""
-        field_schema = dataset.get_field_schema()
-        if field_name in field_schema:
-            if del_prev_detections:
-                dataset.delete_sample_field(field_name)
-                dataset.add_sample_field(field_name, fo.EmbeddedDocumentField, embedded_doc_type=fo.Detections)
-        else:
-            dataset.add_sample_field(field_name, fo.EmbeddedDocumentField, embedded_doc_type=fo.Detections)
-
-        if len(images_dir) == 0 or (image_files is not None and len(image_files) > 0):
-            results, batch_id_list, error_msg = self.det_image_sequence(model_id, image_files, class_selection_mode,
-                                                                        detect_supercategories, batch_size, del_uploaded_images)
-        else:
-            results, error_msg = self.det_images_on_server(model_id, images_dir, None, class_selection_mode,
-                                                           detect_supercategories, del_uploaded_images, False, None, top_k)
-
-        #filter_overlapped_objects(results, threshold)
-
-        if len(error_msg) == 0:
-
-            insert_results_in_dataset(dataset, results, images_dir, threshold, object_list, field_name)
-
-        return results, error_msg
-
     def evaluate(self, model_id, validation_dataset, val_images_dir, validation_image_list, label, batch_size=10):
 
         batch_id_list = None
@@ -1144,55 +1066,3 @@ class object_detection_client:
             return evaluation_result, error_msg
         else:
             return None, error_msg
-
-    def evaluate_clusters(self, model_id, validation_dataset, val_images_dir, validation_image_list, label,
-                          numb_clusters, batch_size=10, top_k=1):
-        error_msg = ""
-        field_name = 'predictions'
-        evaluation_result = None
-        evaluation_result_clusters= [None] * numb_clusters
-
-        if len(val_images_dir) == 0:
-            results, batch_id_list, error_msg = self.det_image_sequence(validation_image_list, 'all',
-                                                                        False, batch_size, False)
-        else:
-            results, error_msg = self.det_images_on_server(model_id, val_images_dir, None, 'all',
-                                                           False, False, False, None, top_k)
-
-        if len(error_msg) == 0:
-            #filter_overlapped_objects(results, 0.0)
-
-            for cluster_numb in range(numb_clusters):
-                field_schema = validation_dataset.get_field_schema()
-                if field_name in field_schema:
-                    validation_dataset.delete_sample_field(field_name)
-                    validation_dataset.add_sample_field(field_name, fo.EmbeddedDocumentField, embedded_doc_type=fo.Detections)
-                else:
-                    validation_dataset.add_sample_field(field_name, fo.EmbeddedDocumentField, embedded_doc_type=fo.Detections)
-
-                insert_results_in_dataset(validation_dataset, results, val_images_dir, 0.0,
-                                          [label], field_name, cluster_numb)
-
-                evaluation_result_clusters[cluster_numb] = validation_dataset.evaluate_detections(
-                    "predictions",
-                    gt_field="detections",
-                    eval_key="eval",
-                    compute_mAP=True
-                )
-
-            if numb_clusters == 1:
-                evaluation_result = evaluation_result_clusters[0]
-            else:
-                validation_dataset.delete_sample_field(field_name)
-                validation_dataset.add_sample_field(field_name, fo.EmbeddedDocumentField, embedded_doc_type=fo.Detections)
-
-                insert_results_in_dataset(validation_dataset, results, val_images_dir, 0.0, [label], field_name, -1)
-
-                evaluation_result = validation_dataset.evaluate_detections(
-                    "predictions",
-                    gt_field="detections",
-                    eval_key="eval",
-                    compute_mAP=True
-                )
-
-        return evaluation_result, evaluation_result_clusters, error_msg
