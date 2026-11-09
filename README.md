@@ -70,10 +70,6 @@ A mask image belongs to an image of the same name and its file name must end wit
    pip install gradio plotly numpy opencv-python requests pydantic-settings
    ```
 
-4. Make sure that `explainability_util.py` (functions for the patch score heatmap and the patch class figure) is
-   located in the same folder as `web_gui_explainability.py`. It is imported by the application; copy it from the
-   DE-ViT project (`devit\explainability_util.py`) if it is missing.
-
 ## User manual
 
 ### Start
