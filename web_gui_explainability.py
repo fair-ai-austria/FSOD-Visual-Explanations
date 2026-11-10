@@ -59,6 +59,7 @@ RESULTS_SUBDIR = 'results'
 LABELS_FILE = 'labels.json'
 MASK_SUFFIX = 'mask.png'  # mask images must end with this suffix
 TOP_K_INDEX = 0  # the visualizations show the best class of each patch
+HOVER_TOP_K = 3  # number of best classes per patch shown in the hover text
 THRESHOLD = 0.0  # patches with a lower score are not shown in the class figure
 
 
@@ -231,10 +232,12 @@ def get_foreground_path(model_id, image_file):
     return os.path.join(results_dir, os.path.basename(image_file) + '_foreground.jpg')
 
 
-def analyse_image(model_id, image_file):
+def analyse_image(model_id, image_file, label_list_base):
     """Analyse the whole image with the object detection service.
 
+    The best HOVER_TOP_K classes (or less if there are fewer classes) are requested for each patch.
     Returns the result (dict with 'scores', 'class_indices' and 'bbox') and an error message."""
+    top_k = max(1, min(HOVER_TOP_K, len(label_list_base)))
     image_info = {
         "process_type": "extract",
     }
@@ -242,7 +245,7 @@ def analyse_image(model_id, image_file):
     if len(error) > 0:
         return None, f"Error uploading image: {error}"
 
-    results, error = detection_client.analyse_region(model_id, None, None, None, batch_id)
+    results, error = detection_client.analyse_region(model_id, None, None, None, batch_id, 'all', top_k)
     if results is None or len(error) > 0:
         return None, f"Error analysing region: {error}"
 
@@ -336,7 +339,7 @@ def show_saved_result(model_id, image_name, status=""):
 def analyse_and_save(model_id, image_file, mask_file, label_list_base):
     """Analyse the image (and its foreground if there is a mask) with the service, save the source files and the
     results and create the visualizations."""
-    result, error = analyse_image(model_id, image_file)
+    result, error = analyse_image(model_id, image_file, label_list_base)
     if result is None:
         print(error)
         return error_outputs(error)
@@ -346,7 +349,7 @@ def analyse_and_save(model_id, image_file, mask_file, label_list_base):
         # mask out the background and analyse the foreground separately
         image_file_foreground = get_foreground_path(model_id, image_file)
         create_foreground_image(image_file, mask_file, image_file_foreground)
-        result_foreground, error = analyse_image(model_id, image_file_foreground)
+        result_foreground, error = analyse_image(model_id, image_file_foreground, label_list_base)
         if result_foreground is None:
             error_msg = "Error analysing region with mask: " + error
             print(error_msg)
