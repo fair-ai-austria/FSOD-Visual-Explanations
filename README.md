@@ -4,7 +4,7 @@ Web application for visual explanations of a few-shot object detection model (DE
 
 ## Description
 
-The application shows how the object detection model classifies the **image patches** of a query image:
+The application visualises how the object detection model classifies the image patches of a query image, as well as showing the influence of the background on these classifications:
 
 | Figure | Content |
 |---|---|
@@ -70,10 +70,6 @@ A mask image belongs to an image of the same name and its file name must end wit
    pip install gradio plotly numpy opencv-python requests pydantic-settings
    ```
 
-4. Make sure that `explainability_util.py` (functions for the patch score heatmap and the patch class figure) is
-   located in the same folder as `web_gui_explainability.py`. It is imported by the application; copy it from the
-   DE-ViT project (`devit\explainability_util.py`) if it is missing.
-
 ## User manual
 
 ### Start
@@ -108,7 +104,7 @@ python web_gui_explainability.py --service_url 192.168.0.10 --service_port 8001 
 2. **View a pre-analysed image**: click a thumbnail. The selected image (and its mask) and the figures are shown.
    Hover over the figures to see the classes and scores of a patch.
 3. **Analyse a new image** (service required): click the upload button and select an image, optionally together with
-   its mask image (file name ends with `mask.png`, white = foreground). Select exactly one image and at most one mask.
+   its mask image (file name ends with `mask.png`, white (255) = foreground). Select exactly one image and at most one mask.
    After the analysis the figures are shown and the image is added to the gallery.
 
 ### Troubleshooting
