@@ -14,6 +14,10 @@ The application visualises how the object detection model classifies the image p
 
 Two models can be selected: `coco` and `lvis`.
 
+<p align="center">
+  <img src="screenshot.jpg" alt="Screenshot of the web application" width="100%" />
+</p>
+
 The application has two modes:
 
 * **Pre-analysed images**: A gallery shows all images with a saved analysis result. A click on a thumbnail creates the
