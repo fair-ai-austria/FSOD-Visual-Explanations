@@ -123,3 +123,13 @@ python web_gui_explainability.py --service_url 192.168.0.10 --service_port 8001 
 ## License
 
 See [LICENSE](LICENSE).
+
+## Acknowledgement
+
+This work is a result of the project FAIR-AI, which is funded by the Austrian Research Promotion Agency (FFG) as part of Artificial Intelligence Mission Austria (AIM AT) from funds of the Austrian Federal Ministry of Innovation, Mobility, and Infrastructure.
+
+<p align="center">
+  <img src="FairAI-Logo-Col-300x100.png" alt="FAIR-AI Logo" width="15%" />
+  <img src="FFG_Logo_DE_RGB_1000px.png" alt="FFG Logo" width="15%" />
+  <img src="Logo_BMIMI_Gefoerdert_EN_SRGB.png" alt="FFG Logo" width="15%" />
+</p>
