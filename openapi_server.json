@@ -1,0 +1,2179 @@
+{
+	"openapi": "3.1.0",
+	"info": {
+		"title": "Object Detector API",
+		"description": "This API provides endpoints for object detection tasks including model training, inference, and prototype management.",
+		"version": "0.1.0"
+	},
+	"servers": [
+		{
+			"url": "http://localhost:8001",
+			"description": "local instance"
+		}
+	],
+	"paths": {
+		"/job_status/{jobId}": {
+			"get": {
+				"summary": "Job Status",
+				"operationId": "job_status_job_status__jobId__get",
+				"parameters": [
+					{
+						"name": "jobId",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Jobid"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Job status and result",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed",
+									"result": [
+										{
+											"image_file": "v_27570344_3_1854.jpg",
+											"feature": [
+												{
+													"region": [
+														235,
+														379,
+														2308,
+														3028
+													],
+													"class": "hot balloon",
+													"confidence": 0.9710983633995056
+												}
+											]
+										}
+									]
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Job not found",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 404,
+									"description": "Job not found"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/status": {
+			"get": {
+				"summary": "Status",
+				"operationId": "status_status_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/StatusService"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/reset_model": {
+			"post": {
+				"summary": "Reset Model",
+				"description": "Deletes all new trained object classes for the dataset. After that only the pretrained object classes can be detected",
+				"operationId": "reset_model_reset_model_post",
+				"parameters": [
+					{
+						"name": "model_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Model Id"
+						}
+					},
+					{
+						"name": "reset_finetuning",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "boolean"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": false,
+							"title": "Reset Finetuning"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Start model reset successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"jobid": "123",
+									"status": "ongoing"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests waiting",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 429,
+									"description": "Too many requests waiting"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/label_list": {
+			"get": {
+				"summary": "Label List",
+				"description": "Gets a list of trained object classes for the specified dataset (model_id).",
+				"operationId": "label_list_label_list_get",
+				"parameters": [
+					{
+						"name": "class_selection_mode",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": "all",
+							"title": "Class Selection Mode"
+						}
+					},
+					{
+						"name": "model_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Model Id"
+						}
+					},
+					{
+						"name": "with_multi_view",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "boolean"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": false,
+							"title": "With Multi View"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of labels",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": [
+									"label1",
+									"label2",
+									"label3"
+								]
+							}
+						}
+					},
+					"404": {
+						"description": "Model not found",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 404,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/label_list_with_super_category": {
+			"get": {
+				"summary": "Label List With Super Category",
+				"description": "Gets a list of trained object classes and their super catregory classes for the specified dataset (model_id).",
+				"operationId": "label_list_with_super_category_label_list_with_super_category_get",
+				"parameters": [
+					{
+						"name": "class_selection_mode",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": "all",
+							"title": "Class Selection Mode"
+						}
+					},
+					{
+						"name": "model_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Model Id"
+						}
+					},
+					{
+						"name": "with_multi_view",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "boolean"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": false,
+							"title": "With Multi View"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of labels and label super categories",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": [
+									"label1",
+									"label2",
+									"label3"
+								]
+							}
+						}
+					},
+					"404": {
+						"description": "Model not found",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 404,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/set_model": {
+			"post": {
+				"summary": "Set Model",
+				"description": "Sets the model (prototype dataset) of the object detector. If it is already available then it will be reloaded otherwise a new model will be created. The attributes for a new model can be specified in the setting dictionary ('pretrained_dataset': 'coco' or 'lvis', 'weighted_patch_calculation': True or False)",
+				"operationId": "set_model_set_model_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetModelRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Prototype dataset is set",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/delete_model": {
+			"post": {
+				"summary": "Delete Model",
+				"description": "Deletes the prototype dataset with the specified id. If the dataset is not available, then an error message is returned.",
+				"operationId": "delete_model_delete_model_post",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string",
+							"title": "Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Prototype dataset deleted successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Prototype dataset not found"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/reload_models": {
+			"post": {
+				"summary": "Reload Models",
+				"description": "Reloads all available prototype datasets",
+				"operationId": "reload_models_reload_models_post",
+				"responses": {
+					"200": {
+						"description": "Prototype datasets reloaded successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/get_models": {
+			"get": {
+				"summary": "Get Models",
+				"description": "Gets a list (dictionary) of available prototype datasets and there properties.",
+				"operationId": "get_models_get_models_get",
+				"responses": {
+					"200": {
+						"description": "Prototypes are set",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"dataset_1": {
+									"name": "test_dataset",
+									"settings": {}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/set_prototypes": {
+			"post": {
+				"summary": "Set Prototypes",
+				"description": "Replace the feature vectors of object class prototypes.",
+				"operationId": "set_prototypes_set_prototypes_post",
+				"requestBody": {
+					"content": {
+						"application/x-www-form-urlencoded": {
+							"schema": {
+								"$ref": "#/components/schemas/Body_set_prototypes_set_prototypes_post"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "list of info data of prototype datasets",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/get_all_prototypes": {
+			"get": {
+				"summary": "Get All Prototypes",
+				"description": "For each object class the prototype feature vector and an example image file name is returned (if it the images are available in the directory pre_trained_example_image.",
+				"operationId": "get_all_prototypes_get_all_prototypes_get",
+				"parameters": [
+					{
+						"name": "class_selection_mode",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"default": "all",
+							"title": "Class Selection Mode"
+						}
+					},
+					{
+						"name": "model_id",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "null"
+								}
+							],
+							"title": "Model Id"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of labels",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"class name 1": {
+									"prototype": [
+										0.1,
+										0.2,
+										0.3
+									],
+									"example_image": "example1.jpg"
+								}
+							}
+						},
+						"500": {
+							"description": "Internal server error",
+							"content": {
+								"application/json": {
+									"example": {
+										"code": 500,
+										"description": "Error message"
+									}
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/calc_embeddings": {
+			"post": {
+				"summary": "Calc Embeddings",
+				"description": "Extract features from images which have been uploaded or there location are specified by the image directory. If bounding boxes are specified (annotation_data) for the images, then the features are extracted only for the regions defined by the bounding boxes, otherwise the features are extracted for the whole image. if calc_average_embedding is True, then the average embedding for the image or for each bounding box is calculated.",
+				"operationId": "calc_embeddings_calc_embeddings_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CalcEmbeddingsPostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Calculation of embeddings started successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"jobid": "123",
+									"status": "ongoing"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests waiting",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 429,
+									"description": "Too many requests waiting"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 400,
+									"description": "No bounding boxes specified"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/delete_classes": {
+			"post": {
+				"summary": "Delete Classes",
+				"description": "Deletes an object class from the specified model (model_id).",
+				"operationId": "delete_classes_delete_classes_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/DelClassesPostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Classes deleted successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "completed"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/finetune_model": {
+			"post": {
+				"summary": "Finetune Model",
+				"description": "Finetuning of the whole object detection model with provided training data. The training data can be provided by previously uploaded file or they already available in the specified directories for the classes. If there is a batch directory specified it will be checked if an annotation file (.json) is available in the directory.",
+				"operationId": "finetune_model_finetune_model_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/FinetuneModelPostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Finetuning started successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"jobid": "123",
+									"status": "ongoing"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests waiting",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 429,
+									"description": "Too many requests waiting"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 400,
+									"description": "No training data specified"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/inc_training": {
+			"post": {
+				"summary": "Inc Training",
+				"description": "Incrementally training of additional objects by using uploaded images. The annotation information for the objects is provided with the images by binary mask images or by a  JSON file (with the filename dataset_dicts.json in each training image directory). By the parameter training_mode it can be specified if a new object class ('new_object') or an additional view of the object ('multi_view') should be trained. If a new object class should be trained, then a previous trained object class with the same name will be replaced.",
+				"operationId": "inc_training_inc_training_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IncTrainingPostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Incremental training started successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"jobid": "123",
+									"status": "ongoing"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests waiting",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 429,
+									"description": "Too many requests waiting"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad request",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 400,
+									"description": "No training data specified"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/image_region_proposals": {
+			"post": {
+				"summary": "Image Region Proposals",
+				"description": "Get the region proposals for an image (first step in the object detection process. These regions are not the same regions which are detected for specific object classes!",
+				"operationId": "image_region_proposals_image_region_proposals_post",
+				"requestBody": {
+					"content": {
+						"application/x-www-form-urlencoded": {
+							"schema": {
+								"$ref": "#/components/schemas/Body_image_region_proposals_image_region_proposals_post"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Image region analysis successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "received"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/create_batch_id": {
+			"put": {
+				"summary": "Create Batch Id",
+				"description": "Creates a batch ID string which can be used to create a subdirectory in the processing directory (./temp). In this subdirectory an image sequence can be saved which can be directly processed for the object detection service. The creation and deletion of the subdirectory will not be done by the object detection service.",
+				"operationId": "create_batch_id_create_batch_id_put",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"201": {
+						"description": "created",
+						"content": {
+							"application/json": {
+								"example": {
+									"status": "created",
+									"batch_id": "10_ext"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/send_image": {
+			"post": {
+				"summary": "Send Image",
+				"description": "Sends an image to the service for extraction (detect_objects) or incremental training",
+				"operationId": "send_image_send_image_post",
+				"requestBody": {
+					"content": {
+						"application/x-www-form-urlencoded": {
+							"schema": {
+								"$ref": "#/components/schemas/Body_send_image_send_image_post"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Image received successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"status": "received"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/detect_objects": {
+			"post": {
+				"summary": "Detect Objects",
+				"description": "Detect objects in an image, image sequence or video. The behavior of the detection process is controlled by the `class_selection_mode` parameter: `all` (detects all objects, including those from the pre-trained COCO classes), `without pre-trained` (excludes pretraind classes entirely from detection), `pre-trained-filtered` (improves detection precision compared to the `without pre-trained` option by removing results related to pretrained classes after the detection process is complete).",
+				"operationId": "detect_objects_detect_objects_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ExtractFeatureNamePostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Feature extraction started successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"jobid": "123",
+									"status": "ongoing"
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Image batch id not valid",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 404,
+									"description": "image batch id not valid"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "wrong input data (e.g. more than one video file found in the batch directory)",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 422,
+									"description": "More than one video file found in the batch directory"
+								}
+							}
+						}
+					},
+					"429": {
+						"description": "Too many requests waiting",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 429,
+									"description": "Too many requests waiting"
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "Internal server error",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 500,
+									"description": "Error message"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/analyse_region": {
+			"post": {
+				"summary": "Analyse Region",
+				"description": "Gets object detection results of am annotated image region",
+				"operationId": "analyse_region_analyse_region_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/AnalyseRegionPostRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Image region are analysed successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": {
+									"bbox": [
+										50,
+										75,
+										100,
+										120
+									],
+									"image_patch_class_scores": 0.67,
+									"image_patch_top_class_indices": [
+										67,
+										80,
+										81
+									],
+									"analyse_label_result": {
+										"area": 1500,
+										"area_label": 850,
+										"rel_score": 0.12,
+										"rel_label_score": 0.15,
+										"diff_score": 0.03
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Bad Request",
+						"content": {
+							"application/json": {
+								"example": {
+									"code": 400,
+									"description": "No image data specified"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/set_settings": {
+			"post": {
+				"summary": "Set Settings",
+				"description": "Specified settings of the object detector will be changed. The new settings should be provided as JSON in the request body.",
+				"operationId": "set_settings_set_settings_post",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"title": "New Settings"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Settings changed successfully",
+						"content": {
+							"application/json": {
+								"schema": {},
+								"example": "Settings changed successfully"
+							}
+						}
+					},
+					"422": {
+						"description": "Validation Error",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HTTPValidationError"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/get_settings": {
+			"get": {
+				"summary": "Get Settings",
+				"operationId": "get_settings_get_settings_get",
+				"responses": {
+					"200": {
+						"description": "Successful Response",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"title": "Response Get Settings Get Settings Get"
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AnalyseRegionPostRequest": {
+				"properties": {
+					"batch_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Batch Id",
+						"description": "ID which has been received at image uploading",
+						"examples": [
+							"1_ext"
+						]
+					},
+					"image_file": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Image File",
+						"description": "file name of the image"
+					},
+					"background_mask_image": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Background Mask Image",
+						"description": "file name of the background mask image"
+					},
+					"region": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "integer"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Region",
+						"description": "The region of interest in the image"
+					},
+					"class_selection_mode": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Class Selection Mode",
+						"description": "The class selection [\"all\", \"without pretrained\", \"filter_pretrained\"]",
+						"default": "all"
+					},
+					"top_k": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Top K",
+						"description": "The number of top classes to be selected",
+						"default": 1
+					},
+					"class_selection": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Class Selection",
+						"description": "The list of classes to be selected"
+					},
+					"analyse_label": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Analyse Label",
+						"description": "The label of the class to extract score numbers"
+					},
+					"use_background_mask": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Use Background Mask",
+						"description": "Use the background mask to exclude background image area for the analysis",
+						"default": false
+					},
+					"model_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Id",
+						"description": "The id of the prototype to be deleted. Default is \"prototypes\"",
+						"default": "prototypes",
+						"examples": [
+							"default_coco"
+						]
+					},
+					"del_data": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Del Data",
+						"description": "Delete the image data after processing",
+						"default": false,
+						"examples": [
+							false
+						]
+					}
+				},
+				"type": "object",
+				"title": "AnalyseRegionPostRequest"
+			},
+			"Body_image_region_proposals_image_region_proposals_post": {
+				"properties": {
+					"image": {
+						"type": "string",
+						"format": "binary",
+						"title": "Image"
+					}
+				},
+				"type": "object",
+				"required": [
+					"image"
+				],
+				"title": "Body_image_region_proposals_image_region_proposals_post"
+			},
+			"Body_send_image_send_image_post": {
+				"properties": {
+					"image": {
+						"type": "string",
+						"format": "binary",
+						"title": "Image"
+					},
+					"image_info": {
+						"type": "string",
+						"contentMediaType": "application/json",
+						"contentSchema": {},
+						"title": "Image Info"
+					}
+				},
+				"type": "object",
+				"required": [
+					"image",
+					"image_info"
+				],
+				"title": "Body_send_image_send_image_post"
+			},
+			"Body_set_prototypes_set_prototypes_post": {
+				"properties": {
+					"body": {
+						"type": "string",
+						"contentMediaType": "application/json",
+						"contentSchema": {},
+						"title": "Body"
+					}
+				},
+				"type": "object",
+				"required": [
+					"body"
+				],
+				"title": "Body_set_prototypes_set_prototypes_post"
+			},
+			"CalcEmbeddingsPostRequest": {
+				"properties": {
+					"model_id": {
+						"type": "string",
+						"title": "Model Id",
+						"description": "The id of the prototype to be used for the extraction.",
+						"examples": [
+							"default_dinov3"
+						]
+					},
+					"batch_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Batch Id",
+						"description": "ID which has been received at image uploading",
+						"examples": [
+							"1_ext"
+						]
+					},
+					"image_dir": {
+						"type": "string",
+						"title": "Image Dir",
+						"description": "The directory containing the images",
+						"examples": [
+							null
+						]
+					},
+					"annotation_data": {
+						"anyOf": [
+							{
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Annotation Data",
+						"description": "List of images with bounding boxes",
+						"examples": [
+							null
+						]
+					},
+					"calc_average_embedding": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Calc Average Embedding",
+						"description": "Calculate the average embeddings",
+						"default": false,
+						"examples": [
+							false
+						]
+					},
+					"save_embeddings_in_file": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Save Embeddings In File",
+						"description": "Save the calculated embeddings in a file with the extension \"bin\"",
+						"default": true,
+						"examples": [
+							false
+						]
+					},
+					"del_data": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Del Data",
+						"description": "Delete the image data after processing",
+						"default": false,
+						"examples": [
+							false
+						]
+					}
+				},
+				"type": "object",
+				"required": [
+					"model_id"
+				],
+				"title": "CalcEmbeddingsPostRequest"
+			},
+			"DelClassesPostRequest": {
+				"properties": {
+					"class_names": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"title": "Class Names",
+						"description": "The list of class names to be deleted"
+					},
+					"model_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Id",
+						"description": "The id of the prototype to be deleted. Default is \"prototypes\"",
+						"default": "prototypes",
+						"examples": [
+							"default_coco"
+						]
+					}
+				},
+				"type": "object",
+				"required": [
+					"class_names"
+				],
+				"title": "DelClassesPostRequest"
+			},
+			"ExtractFeatureNamePostRequest": {
+				"properties": {
+					"data_url": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Data Url",
+						"description": "The URL of the media object to be processed",
+						"examples": [
+							null
+						]
+					},
+					"del_data": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Del Data",
+						"description": "Delete the image or video data after processing",
+						"default": true
+					},
+					"batch_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Batch Id",
+						"description": "ID which has been received at image uploading",
+						"examples": [
+							"1_ext"
+						]
+					},
+					"model_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Id",
+						"description": "The id of the prototype to be used for the extraction.",
+						"default": "prototypes",
+						"examples": [
+							"default_coco"
+						]
+					},
+					"detection_threshold": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Detection Threshold",
+						"description": "The detection threshold for the object detection. If it is None all detection results are returned. "
+					},
+					"ioa_filtering_threshold": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Ioa Filtering Threshold",
+						"description": "The IOA threshold for filtering overlapping detection results. If it is None no filtering is applied. ",
+						"default": 0.9
+					},
+					"top_k": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Top K",
+						"description": "The number of top classes (>=1) which are evaluated for each detection region.",
+						"default": 1
+					},
+					"detect_supercategories": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Detect Supercategories",
+						"description": "If specified the supercategory names instead of the class names are detected.",
+						"default": false
+					},
+					"server_data_path": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Server Data Path",
+						"description": "Path of the data directory at the server",
+						"examples": [
+							null
+						]
+					},
+					"class_selection_mode": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Class Selection Mode",
+						"description": "The class selection [\"all\", \"without pretrained\", \"filter_pretrained\"]",
+						"default": "all"
+					},
+					"with_embeddings": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "With Embeddings",
+						"description": "Return the feature embeddings instead of the class names and scores",
+						"default": false
+					},
+					"start": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Start",
+						"description": "The start time of the segment to be processed",
+						"examples": [
+							null
+						]
+					},
+					"end": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "End",
+						"description": "The end time of the segment to be processed",
+						"examples": [
+							null
+						]
+					},
+					"last": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Last",
+						"description": "Optional parameter indicating that the segment represents the last frame",
+						"examples": [
+							null
+						]
+					}
+				},
+				"type": "object",
+				"title": "ExtractFeatureNamePostRequest"
+			},
+			"FinetuneModelPostRequest": {
+				"properties": {
+					"batch_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Batch Id",
+						"description": "ID which has been received at image uploading",
+						"examples": [
+							"1_ext"
+						]
+					},
+					"model_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Id",
+						"description": "The id of the prototype to be deleted. Default is \"prototypes\"",
+						"default": "prototypes",
+						"examples": [
+							"default_coco"
+						]
+					},
+					"training_annotation_dir": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Training Annotation Dir",
+						"description": "Directory where the trainings data have been uploaded",
+						"examples": [
+							null
+						]
+					},
+					"trainings_parameters": {
+						"anyOf": [
+							{
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Trainings Parameters",
+						"description": "The training parameters for the finetuning of the model",
+						"examples": [
+							{
+								"base_lr": 0.002,
+								"ims_per_batch": 16,
+								"max_iter": 200,
+								"numb_gpus": 1,
+								"steps": [
+									80,
+									120
+								]
+							}
+						]
+					}
+				},
+				"type": "object",
+				"title": "FinetuneModelPostRequest"
+			},
+			"HTTPValidationError": {
+				"properties": {
+					"detail": {
+						"items": {
+							"$ref": "#/components/schemas/ValidationError"
+						},
+						"type": "array",
+						"title": "Detail"
+					}
+				},
+				"type": "object",
+				"title": "HTTPValidationError"
+			},
+			"IncTrainingPostRequest": {
+				"properties": {
+					"batch_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Batch Id",
+						"description": "ID which has been received at image uploading",
+						"examples": [
+							"1_ext"
+						]
+					},
+					"new_class_info": {
+						"anyOf": [
+							{
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "New Class Info",
+						"description": "For each new class name a super category class name or the tuple [super category, use_parent_area] or None has to be specified",
+						"examples": [
+							{
+								"military_helicopter": "helicopter"
+							}
+						]
+					},
+					"training_mode": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Training Mode",
+						"description": "The training mode [\"new_object\", \"multi_view\"]",
+						"default": "new_object"
+					},
+					"mask_background": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Mask Background",
+						"description": "Use the background mask to exclude background image area for training",
+						"default": false
+					},
+					"model_id": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Id",
+						"description": "The id of the prototype to be deleted. Default is \"prototypes\"",
+						"default": "prototypes",
+						"examples": [
+							"default_coco"
+						]
+					},
+					"use_supercategory": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Use Supercategory",
+						"description": "Use the super category of the class for training. Default is True",
+						"default": true
+					},
+					"re_calc_embeddings": {
+						"anyOf": [
+							{
+								"type": "boolean"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Re Calc Embeddings",
+						"description": "Recalculate the embeddings even they are already available. Default is True",
+						"default": true
+					},
+					"train_split_fraction": {
+						"anyOf": [
+							{
+								"type": "number"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Train Split Fraction",
+						"description": "The fraction of images to be used for training. Default is 1.0",
+						"default": 1.0
+					}
+				},
+				"type": "object",
+				"title": "IncTrainingPostRequest"
+			},
+			"SetModelRequest": {
+				"properties": {
+					"model_id": {
+						"type": "string",
+						"title": "Model Id",
+						"description": "The id of the prototype to be used for the extraction.",
+						"examples": [
+							"default_coco"
+						]
+					},
+					"name": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Name",
+						"description": "The name of the model to be used for the extraction.",
+						"default": ""
+					},
+					"model_path": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Model Path",
+						"description": "The path to the model file. If not set, the pretrained model in dependence of the pretrained_dataset will be used."
+					},
+					"finetuned_labels": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "string"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Finetuned Labels",
+						"description": "The list of finetuned class labels."
+					},
+					"pretrained_prototype_files": {
+						"anyOf": [
+							{
+								"type": "string"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Pretrained Prototype Files",
+						"description": "A comma separated path list to the pretrained model files. If not set, the pretrained model in dependence of the pretrained_dataset will be used."
+					},
+					"settings": {
+						"anyOf": [
+							{
+								"type": "object"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Settings",
+						"description": "Settings for the pre-trained dataset extraction: e.g.'pretrained_dataset': 'coco', 'model_size': 'l'",
+						"default": {}
+					}
+				},
+				"type": "object",
+				"required": [
+					"model_id"
+				],
+				"title": "SetModelRequest"
+			},
+			"StatusService": {
+				"properties": {
+					"code": {
+						"type": "integer",
+						"title": "Code",
+						"description": "The error code"
+					},
+					"version": {
+						"type": "string",
+						"title": "Version"
+					},
+					"numb_waiting_jobs": {
+						"type": "integer",
+						"title": "Numb Waiting Jobs"
+					},
+					"numb_avail_gpus": {
+						"anyOf": [
+							{
+								"type": "integer"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Numb Avail Gpus",
+						"description": "The number of available GPUs"
+					},
+					"gpu_memory": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "number"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Gpu Memory",
+						"description": "The available GPU memory in GB"
+					},
+					"gpu_usage": {
+						"anyOf": [
+							{
+								"items": {
+									"type": "number"
+								},
+								"type": "array"
+							},
+							{
+								"type": "null"
+							}
+						],
+						"title": "Gpu Usage",
+						"description": "The GPU usage in percentage"
+					}
+				},
+				"additionalProperties": false,
+				"type": "object",
+				"required": [
+					"code",
+					"version",
+					"numb_waiting_jobs"
+				],
+				"title": "StatusService"
+			},
+			"ValidationError": {
+				"properties": {
+					"loc": {
+						"items": {
+							"anyOf": [
+								{
+									"type": "string"
+								},
+								{
+									"type": "integer"
+								}
+							]
+						},
+						"type": "array",
+						"title": "Location"
+					},
+					"msg": {
+						"type": "string",
+						"title": "Message"
+					},
+					"type": {
+						"type": "string",
+						"title": "Error Type"
+					}
+				},
+				"type": "object",
+				"required": [
+					"loc",
+					"msg",
+					"type"
+				],
+				"title": "ValidationError"
+			}
+		}
+	}
+}
